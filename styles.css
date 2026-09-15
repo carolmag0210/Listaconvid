@@ -307,10 +307,12 @@ main {
 
 .metric-value {
   display: block;
-  font-family: "Cormorant Garamond", serif;
-  font-size: 52px;
-  line-height: .9;
+  font-family: "Manrope", sans-serif;
+  font-size: 48px;
+  line-height: .95;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
 }
 
 .metric-note {

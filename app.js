@@ -1,4 +1,4 @@
-/* v5 — check-in instantâneo + desfazer entrada elegante */
+/* v6 — check-in instantâneo + acompanhante identificado sem rótulo no principal */
 (() => {
   "use strict";
 
@@ -202,8 +202,8 @@
       const busy = state.busyIds.has(guest.id);
       const enteredAt = guest.horarioEntrada ? `Entrada às ${formatTime(guest.horarioEntrada)}` : "";
       const groupLabel = guest.grupo && normalize(guest.grupo) !== normalize(guest.nome)
-        ? `Confirmação de ${escapeHtml(guest.grupo)}`
-        : "Convidado principal";
+        ? `Acompanhante de ${escapeHtml(guest.grupo)}`
+        : "";
 
       const actionArea = guest.entrou
         ? `
@@ -242,10 +242,21 @@
             <div class="guest-info">
               <h3 class="guest-name">${escapeHtml(guest.nome)}</h3>
 
-              <div class="guest-meta">
-                <span>${groupLabel}</span>
-                ${enteredAt ? `<span class="meta-separator"></span><span>${escapeHtml(enteredAt)}</span>` : ""}
-              </div>
+              ${
+                groupLabel || enteredAt
+                  ? `
+                    <div class="guest-meta">
+                      ${groupLabel ? `<span>${groupLabel}</span>` : ""}
+                      ${
+                        groupLabel && enteredAt
+                          ? `<span class="meta-separator"></span>`
+                          : ""
+                      }
+                      ${enteredAt ? `<span>${escapeHtml(enteredAt)}</span>` : ""}
+                    </div>
+                  `
+                  : ""
+              }
             </div>
           </div>
 
