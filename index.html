@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#fbfaf7">
+  <title>Lista de Convidados — Luciene Vilela</title>
+  <meta name="description" content="Lista de convidados confirmados para a celebração de Luciene Vilela.">
+
+  <link rel="icon" type="image/png" href="assets/LV_DOURADO.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <div class="orbit-line orbit-line-one" aria-hidden="true"></div>
+    <div class="orbit-line orbit-line-two" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Lista de convidados Luciene Vilela">
+        <img src="assets/LV_DOURADO.png" alt="LV">
+        <div class="brand-copy">
+          <span class="brand-name">Luciene Vilela</span>
+          <span class="brand-kicker">Celebração 2026 · Lista de convidados</span>
+        </div>
+      </a>
+
+      <button class="refresh-button" id="refreshButton" type="button" aria-label="Atualizar lista">
+        <span class="refresh-icon" aria-hidden="true">↻</span>
+        <span>Atualizar</span>
+      </button>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">26 de setembro · Clube Espanhol</span>
+          <h1>Lista de convidados <em>confirmados</em></h1>
+          <p>
+            Consulta em tempo real para a anfitriã e equipe de recepção.
+            Todos os nomes aparecem individualmente e em ordem alfabética.
+          </p>
+        </div>
+
+        <div class="status-card">
+          <span class="status-dot" id="connectionDot"></span>
+          <div>
+            <strong id="connectionLabel">Conectando…</strong>
+            <span id="lastSyncLabel">Buscando confirmações</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard" aria-label="Resumo da lista">
+        <article class="metric-card metric-card-primary">
+          <span class="metric-label">Confirmados</span>
+          <strong class="metric-value" id="totalConfirmed">—</strong>
+          <span class="metric-note">pessoas na lista</span>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Já entraram</span>
+          <strong class="metric-value" id="totalEntered">—</strong>
+          <span class="metric-note">check-ins registrados</span>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Aguardando</span>
+          <strong class="metric-value" id="totalWaiting">—</strong>
+          <span class="metric-note">ainda não liberados</span>
+        </article>
+      </section>
+
+      <section class="list-panel">
+        <div class="list-toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"></path>
+            </svg>
+            <input
+              id="searchInput"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Buscar convidado pelo nome…"
+              aria-label="Buscar convidado pelo nome"
+            >
+            <button id="clearSearch" class="clear-search" type="button" aria-label="Limpar busca">×</button>
+          </div>
+
+          <div class="filter-tabs" role="group" aria-label="Filtrar lista">
+            <button class="filter-tab active" data-filter="all" type="button">Todos</button>
+            <button class="filter-tab" data-filter="waiting" type="button">Aguardando</button>
+            <button class="filter-tab" data-filter="entered" type="button">Já entraram</button>
+          </div>
+        </div>
+
+        <div class="list-header">
+          <div class="list-header-main">
+            <img
+              class="list-header-clover"
+              src="assets/trevo-lista.png"
+              alt=""
+              aria-hidden="true"
+            >
+
+            <div class="list-header-copy">
+              <span class="list-kicker">Relação alfabética</span>
+              <h2 id="listTitle">Todos os convidados</h2>
+            </div>
+          </div>
+
+          <span class="result-count" id="resultCount">0 nomes</span>
+        </div>
+
+        <div id="loadingState" class="state-card">
+          <span class="spinner"></span>
+          <strong>Carregando convidados…</strong>
+          <p>Sincronizando com a lista de confirmações.</p>
+        </div>
+
+        <div id="errorState" class="state-card state-error hidden">
+          <strong>Não foi possível carregar a lista.</strong>
+          <p id="errorMessage">Confira a conexão e tente novamente.</p>
+          <button id="retryButton" class="secondary-button" type="button">Tentar novamente</button>
+        </div>
+
+        <div id="emptyState" class="state-card hidden">
+          <strong>Nenhum nome encontrado.</strong>
+          <p>Tente buscar por outro nome ou alterar o filtro.</p>
+        </div>
+
+        <div id="guestList" class="guest-list hidden" aria-live="polite"></div>
+      </section>
+
+      <p class="footer-note">
+        As marcações de entrada ficam salvas na planilha e permanecem após atualizar ou fechar esta página.
+      </p>
+    </main>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <div class="confirm-backdrop hidden" id="confirmBackdrop" role="presentation">
+    <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <span class="dialog-kicker">Confirmação de ação</span>
+      <h3 id="confirmTitle">Desfazer entrada?</h3>
+      <p id="confirmText">Esta pessoa voltará para a lista de aguardando.</p>
+      <div class="dialog-actions">
+        <button id="cancelDialog" class="secondary-button" type="button">Cancelar</button>
+        <button id="confirmDialog" class="danger-button" type="button">Desfazer entrada</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
