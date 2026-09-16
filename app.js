@@ -1,4 +1,4 @@
-/* v6 — check-in instantâneo + acompanhante identificado sem rótulo no principal */
+/* v7 — nomes padronizados visualmente + acompanhante identificado */
 (() => {
   "use strict";
 
@@ -50,6 +50,58 @@
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .trim();
+  }
+
+  function formatPersonName(value = "") {
+    const original = String(value || "").trim();
+
+    if (!original) {
+      return "";
+    }
+
+    /*
+     * Padroniza APENAS a exibição.
+     * O valor salvo no Google Sheets continua exatamente como foi digitado.
+     */
+    const lowerWords = new Set([
+      "da",
+      "das",
+      "de",
+      "do",
+      "dos",
+      "e"
+    ]);
+
+    const formatPart = (part, index) => {
+      const lower = part.toLocaleLowerCase("pt-BR");
+
+      if (index > 0 && lowerWords.has(lower)) {
+        return lower;
+      }
+
+      return lower
+        .split("-")
+        .map(segment => {
+          return segment
+            .split("'")
+            .map(piece => {
+              if (!piece) return piece;
+
+              return (
+                piece.charAt(0).toLocaleUpperCase("pt-BR") +
+                piece.slice(1)
+              );
+            })
+            .join("'");
+        })
+        .join("-");
+    };
+
+    return original
+      .replace(/\s+/g, " ")
+      .split(" ")
+      .map(formatPart)
+      .join(" ");
   }
 
   function escapeHtml(value = "") {
@@ -192,7 +244,9 @@
     const html = [];
 
     guests.forEach((guest) => {
-      const letter = (normalize(guest.nome)[0] || "#").toUpperCase();
+      const displayName = formatPersonName(guest.nome);
+      const displayGroup = formatPersonName(guest.grupo);
+      const letter = (normalize(displayName)[0] || "#").toUpperCase();
 
       if (letter !== currentLetter) {
         currentLetter = letter;
@@ -202,7 +256,7 @@
       const busy = state.busyIds.has(guest.id);
       const enteredAt = guest.horarioEntrada ? `Entrada às ${formatTime(guest.horarioEntrada)}` : "";
       const groupLabel = guest.grupo && normalize(guest.grupo) !== normalize(guest.nome)
-        ? `Acompanhante de ${escapeHtml(guest.grupo)}`
+        ? `Acompanhante de ${escapeHtml(displayGroup)}`
         : "";
 
       const actionArea = guest.entrou
@@ -217,7 +271,7 @@
               class="undo-entry-button"
               type="button"
               data-cancel-id="${escapeHtml(guest.id)}"
-              aria-label="Desfazer entrada de ${escapeHtml(guest.nome)}"
+              aria-label="Desfazer entrada de ${escapeHtml(displayName)}"
             >
               <span class="undo-entry-icon" aria-hidden="true">↶</span>
               <span>Desfazer entrada</span>
@@ -237,10 +291,10 @@
       html.push(`
         <article class="guest-card ${guest.entrou ? "entered" : ""}" data-id="${escapeHtml(guest.id)}">
           <div class="guest-main">
-            <div class="guest-avatar" aria-hidden="true">${escapeHtml(initials(guest.nome))}</div>
+            <div class="guest-avatar" aria-hidden="true">${escapeHtml(initials(displayName))}</div>
 
             <div class="guest-info">
-              <h3 class="guest-name">${escapeHtml(guest.nome)}</h3>
+              <h3 class="guest-name">${escapeHtml(displayName)}</h3>
 
               ${
                 groupLabel || enteredAt
@@ -417,8 +471,8 @@
 
     showToast(
       entered
-        ? `Entrada de ${guest.nome} registrada.`
-        : `Entrada de ${guest.nome} desfeita.`,
+        ? `Entrada de ${formatPersonName(guest.nome)} registrada.`
+        : `Entrada de ${formatPersonName(guest.nome)} desfeita.`,
       "success"
     );
 
@@ -451,7 +505,7 @@
 
   function openUndoDialog(guest) {
     state.undoTarget = guest;
-    elements.confirmTitle.textContent = `Desfazer entrada de ${guest.nome}?`;
+    elements.confirmTitle.textContent = `Desfazer entrada de ${formatPersonName(guest.nome)}?`;
     elements.confirmText.textContent = "O nome voltará para a lista de aguardando. Essa alteração ficará salva para todos os aparelhos.";
     elements.confirmBackdrop.classList.remove("hidden");
   }
